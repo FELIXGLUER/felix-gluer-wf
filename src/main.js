@@ -701,3 +701,59 @@ $(document).ready(function () {
       s();
   }
 });
+
+
+// Language Switch
+
+$(document).ready(function() {
+  function getCurrentLanguage() {
+      var path = window.location.pathname;
+
+      var exactLangMatch = path.match(/^\/([a-z]{2})$/);
+      if (exactLangMatch) {
+          return exactLangMatch[1];
+      }
+
+      var subDirLangMatch = path.match(/^\/([a-z]{2})\//);
+      if (subDirLangMatch) {
+          return subDirLangMatch[1];
+      }
+
+      return 'en';
+  }
+
+  function updateLanguageDisplay() {
+      var currentLang = getCurrentLanguage();
+
+      var $trigger = $('[data-lang="trigger"]');
+      $trigger.text(currentLang.toUpperCase());
+
+      $('[data-lang]').each(function() {
+          var lang = $(this).attr('data-lang');
+          if (lang === 'es') {
+              $(this).addClass('hide');
+          } else if (lang === currentLang) {
+              $(this).addClass('hide');
+          } else {
+              $(this).removeClass('hide');
+          }
+      });
+  }
+
+  function switchLanguage(lang) {
+      var newPath = lang === 'en' ? '/' : '/' + lang + '/';
+      window.location.href = newPath;
+  }
+
+  $('[data-lang]').not('[data-lang="trigger"]').on('click', function(e) {
+      e.preventDefault();
+      var lang = $(this).attr('data-lang');
+      switchLanguage(lang);
+  });
+
+  updateLanguageDisplay();
+
+  $(window).on('load', function() {
+      updateLanguageDisplay();
+  });
+});
