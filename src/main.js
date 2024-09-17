@@ -8,7 +8,7 @@ $(".navbar_lang_close").on("click", function () {
 });
 
 // Scroll to top function
-function scrollToTop(element) { 
+function scrollToTop(element) {
   element.scrollTop(0);
 }
 
@@ -556,208 +556,268 @@ $(document).ready(function () {
 // Anchor Menu
 
 $(document).ready(function () {
-  let t = $("[data-item='anchor-menu-wrapper']");
-  if (t.length) {
-    let e = t.children("a"),
-      n = $("#anchor-left"),
-      r = $("#anchor-right"),
-      i = $("[data-item='anchor-menu-arrows']"),
-      l = !1;
-    function s() {
-      let i = (function n() {
-          let r = e.first().offset().left,
-            i = t.offset().left;
-          return r >= i;
-        })(),
-        l = (function n() {
-          let r = e.last().offset().left + e.last().outerWidth(!0),
-            i = t.offset().left + t.innerWidth();
-          return r <= i;
-        })(),
-        s = (function n() {
-          let r = t.innerWidth(),
-            i = e.toArray().reduce((t, e) => t + $(e).outerWidth(!0), 0);
-          return i > r;
-        })();
-      if (!s) {
-        t.css("justify-content", "center"),
-          n.add(r).css({ opacity: "0", display: "none" });
+  let menuWrapper = $("[data-item='anchor-menu-wrapper']");
+  if (menuWrapper.length) {
+    let menuItems = menuWrapper.children("a");
+    let leftArrow = $("#anchor-left");
+    let rightArrow = $("#anchor-right");
+    let arrowWrapper = $("[data-item='anchor-menu-arrows']");
+    let isAnimating = false;
+
+    function updateArrowVisibility() {
+      let isAtStart = (function checkStart() {
+        let firstItemLeft = menuItems.first().offset().left;
+        let wrapperLeft = menuWrapper.offset().left;
+        return firstItemLeft >= wrapperLeft;
+      })();
+
+      let isAtEnd = (function checkEnd() {
+        let lastItemRight =
+          menuItems.last().offset().left + menuItems.last().outerWidth(true);
+        let wrapperRight = menuWrapper.offset().left + menuWrapper.innerWidth();
+        return lastItemRight <= wrapperRight;
+      })();
+
+      let isOverflowing = (function checkOverflow() {
+        let wrapperWidth = menuWrapper.innerWidth();
+        let totalItemsWidth = menuItems
+          .toArray()
+          .reduce((total, item) => total + $(item).outerWidth(true), 0);
+        return totalItemsWidth > wrapperWidth;
+      })();
+
+      if (!isOverflowing) {
+        menuWrapper.css("justify-content", "center");
+        leftArrow.add(rightArrow).css({ opacity: "0", display: "none" });
         return;
       }
-      t.css("justify-content", "flex-start"),
-        i
-          ? n.css({ opacity: "0", display: "none" })
-          : n.css({ opacity: "1", display: "flex" }),
-        l
-          ? r.css({ opacity: "0", display: "none" })
-          : r.css({ opacity: "1", display: "flex" });
-    }
-    function o(n = !1) {
-      let r = e.filter(".w--current");
-      r.length
-        ? (t.removeClass("is-stack"), n || c(r))
-        : t.addClass("is-stack"),
-        s();
-    }
-    function c(e, n = !1) {
-      if (!e.length) return;
-      let r = e.offset().left,
-        i = e.outerWidth(!0),
-        o = t.offset().left,
-        c = t.innerWidth(),
-        a = t.scrollLeft(),
-        f = a;
-      if (r + i > o + c) f += r + i - (o + c);
-      else {
-        if (!(r < o)) return;
-        f -= o - r;
+
+      menuWrapper.css("justify-content", "flex-start");
+
+      if (isAtStart) {
+        leftArrow.css({ opacity: "0", display: "none" });
+      } else {
+        leftArrow.css({ opacity: "1", display: "flex" });
       }
-      n
-        ? (t.scrollLeft(f), s())
-        : ((l = !0),
-          t.stop().animate({ scrollLeft: f }, 300, () => {
-            (l = !1), s();
-          }));
+
+      if (isAtEnd) {
+        rightArrow.css({ opacity: "0", display: "none" });
+      } else {
+        rightArrow.css({ opacity: "1", display: "flex" });
+      }
     }
-    function a(t) {
-      let n = e.filter(".w--current"),
-        r;
-      (r =
-        0 === n.length
-          ? "right" === t
-            ? e.first()
-            : e.last()
-          : "right" === t
-          ? n.next("a").length
-            ? n.next("a")
-            : e.first()
-          : n.prev("a").length
-          ? n.prev("a")
-          : e.last()),
-        n.length && n.removeClass("w--current"),
-        r.addClass("w--current");
-      let i = n.attr("href"),
-        l = r.attr("href");
-      console.log(
-        `Current section: ${i || "none"}, Going to ${
-          "right" === t ? "next" : "previous"
-        } section: ${l}`
-      ),
-        r.trigger("click"),
-        c(r, !1),
-        o();
+
+    function updateMenuState(isInitialLoad = false) {
+      let currentItem = menuItems.filter(".w--current");
+      if (currentItem.length) {
+        menuWrapper.removeClass("is-stack");
+        if (!isInitialLoad) {
+          scrollToCenter(currentItem);
+        }
+      } else {
+        menuWrapper.addClass("is-stack");
+      }
+      updateArrowVisibility();
     }
-    function f(e) {
-      if (l) return;
-      l = !0;
-      let n = t.innerWidth(),
-        r = t[0].scrollWidth;
-      i.attr("data-scrolling", "true"),
-        t
-          .stop()
-          .animate({ scrollLeft: "right" === e ? r - n : 0 }, 300, function () {
-            i.attr("data-scrolling", "false"), (l = !1), s();
-          });
+
+    function scrollToCenter(element, immediate = false) {
+      if (!element.length) return;
+
+      let elementLeft = element.offset().left;
+      let elementWidth = element.outerWidth(true);
+      let wrapperLeft = menuWrapper.offset().left;
+      let wrapperWidth = menuWrapper.innerWidth();
+      let currentScroll = menuWrapper.scrollLeft();
+      let newScroll = currentScroll;
+
+      if (elementLeft + elementWidth > wrapperLeft + wrapperWidth) {
+        newScroll += elementLeft + elementWidth - (wrapperLeft + wrapperWidth);
+      } else if (elementLeft < wrapperLeft) {
+        newScroll -= wrapperLeft - elementLeft;
+      } else {
+        return;
+      }
+
+      if (immediate) {
+        menuWrapper.scrollLeft(newScroll);
+        updateArrowVisibility();
+      } else {
+        isAnimating = true;
+        menuWrapper.stop().animate({ scrollLeft: newScroll }, 300, () => {
+          isAnimating = false;
+          updateArrowVisibility();
+        });
+      }
     }
-    r.on("click", function () {
-      l ||
-        "0" === r.css("opacity") ||
-        (console.log("Right arrow clicked"), a("right"));
-    }),
-      n.on("click", function () {
-        l ||
-          "0" === n.css("opacity") ||
-          (console.log("Left arrow clicked"), a("left"));
-      }),
-      t.on("scroll", function () {
-        l ||
-          (function t() {
-            if (l) return;
-            let n = e.filter(".w--current");
-            c(n, !1), o(), s();
-          })();
-      }),
-      $(window).on("resize", function () {
-        s();
-      }),
-      $(window).on("load", function () {
-        s(), o(!0);
-        let t = e.filter(".w--current");
-        t.length && c(t, !0);
-      }),
-      e.on("classChange", function () {
-        o();
-      });
-    let u = $.fn.addClass,
-      h = $.fn.removeClass;
-    ($.fn.addClass = function () {
-      let t = u.apply(this, arguments);
-      return $(this).trigger("classChange"), t;
-    }),
-      ($.fn.removeClass = function () {
-        let t = h.apply(this, arguments);
-        return $(this).trigger("classChange"), t;
-      }),
-      s();
+
+    function navigateMenu(direction) {
+      let currentItem = menuItems.filter(".w--current");
+      let nextItem;
+
+      if (currentItem.length === 0) {
+        nextItem = direction === "right" ? menuItems.first() : menuItems.last();
+      } else {
+        nextItem =
+          direction === "right"
+            ? currentItem.next("a").length
+              ? currentItem.next("a")
+              : menuItems.first()
+            : currentItem.prev("a").length
+            ? currentItem.prev("a")
+            : menuItems.last();
+      }
+
+      if (currentItem.length) {
+        currentItem.removeClass("w--current");
+      }
+      nextItem.addClass("w--current");
+
+      // let currentSection = currentItem.attr("href");
+      // let nextSection = nextItem.attr("href");
+      // console.log(`Current section: ${currentSection || "none"}, Going to ${direction === "right" ? "next" : "previous"} section: ${nextSection}`);
+
+      nextItem.trigger("click");
+      scrollToCenter(nextItem, false);
+      updateMenuState();
+    }
+
+    function scrollFull(direction) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      let wrapperWidth = menuWrapper.innerWidth();
+      let fullWidth = menuWrapper[0].scrollWidth;
+      arrowWrapper.attr("data-scrolling", "true");
+
+      menuWrapper
+        .stop()
+        .animate(
+          { scrollLeft: direction === "right" ? fullWidth - wrapperWidth : 0 },
+          300,
+          function () {
+            arrowWrapper.attr("data-scrolling", "false");
+            isAnimating = false;
+            updateArrowVisibility();
+          }
+        );
+    }
+
+    rightArrow.on("click", function () {
+      if (!isAnimating && rightArrow.css("opacity") !== "0") {
+        navigateMenu("right");
+      }
+    });
+
+    leftArrow.on("click", function () {
+      if (!isAnimating && leftArrow.css("opacity") !== "0") {
+        navigateMenu("left");
+      }
+    });
+
+    menuWrapper.on("scroll", function () {
+      if (!isAnimating) {
+        (function handleScroll() {
+          if (isAnimating) return;
+          let currentItem = menuItems.filter(".w--current");
+          scrollToCenter(currentItem, false);
+          updateMenuState();
+          updateArrowVisibility();
+        })();
+      }
+    });
+
+    $(window).on("resize", function () {
+      updateArrowVisibility();
+    });
+
+    $(window).on("load", function () {
+      updateArrowVisibility();
+      updateMenuState(true);
+      let currentItem = menuItems.filter(".w--current");
+      if (currentItem.length) {
+        scrollToCenter(currentItem, true);
+      }
+    });
+
+    menuItems.on("classChange", function () {
+      updateMenuState();
+    });
+
+    let originalAddClass = $.fn.addClass;
+    let originalRemoveClass = $.fn.removeClass;
+
+    $.fn.addClass = function () {
+      let result = originalAddClass.apply(this, arguments);
+      $(this).trigger("classChange");
+      return result;
+    };
+
+    $.fn.removeClass = function () {
+      let result = originalRemoveClass.apply(this, arguments);
+      $(this).trigger("classChange");
+      return result;
+    };
+
+    updateArrowVisibility();
   }
 });
-
 
 // Language Switch
 
-$(document).ready(function() {
+$(document).ready(function () {
   function getCurrentLanguage() {
-      var path = window.location.pathname;
+    var path = window.location.pathname;
 
-      var exactLangMatch = path.match(/^\/([a-z]{2})$/);
-      if (exactLangMatch) {
-          return exactLangMatch[1];
-      }
+    var exactLangMatch = path.match(/^\/([a-z]{2})$/);
+    if (exactLangMatch) {
+      return exactLangMatch[1];
+    }
 
-      var subDirLangMatch = path.match(/^\/([a-z]{2})\//);
-      if (subDirLangMatch) {
-          return subDirLangMatch[1];
-      }
+    var subDirLangMatch = path.match(/^\/([a-z]{2})\//);
+    if (subDirLangMatch) {
+      return subDirLangMatch[1];
+    }
 
-      return 'en';
+    return "en";
   }
 
   function updateLanguageDisplay() {
-      var currentLang = getCurrentLanguage();
+    var currentLang = getCurrentLanguage();
 
-      var $trigger = $('[data-lang="trigger"]');
-      $trigger.text(currentLang.toUpperCase());
+    var $trigger = $('[data-lang="trigger"]');
+    $trigger.text(currentLang.toUpperCase());
 
-      $('[data-lang]').each(function() {
-          var lang = $(this).attr('data-lang');
-          if (lang === 'es') {
-              $(this).addClass('hide');
-          } else if (lang === currentLang) {
-              $(this).addClass('hide');
-          } else {
-              $(this).removeClass('hide');
-          }
-      });
+    $("[data-lang]").each(function () {
+      var lang = $(this).attr("data-lang");
+      if (lang === "es") {
+        $(this).addClass("hide");
+      } else if (lang === currentLang) {
+        $(this).addClass("hide");
+      } else {
+        $(this).removeClass("hide");
+      }
+    });
   }
 
   function switchLanguage(lang) {
-      var newPath = lang === 'en' ? '/' : '/' + lang + '/';
-      window.location.href = newPath;
+    var newPath = lang === "en" ? "/" : "/" + lang + "/";
+    window.location.href = newPath;
   }
 
-  $('[data-lang]').not('[data-lang="trigger"]').on('click', function(e) {
+  $("[data-lang]")
+    .not('[data-lang="trigger"]')
+    .on("click", function (e) {
       e.preventDefault();
-      var lang = $(this).attr('data-lang');
+      var lang = $(this).attr("data-lang");
       switchLanguage(lang);
-  });
+    });
 
   updateLanguageDisplay();
 
-  $(window).on('load', function() {
-      updateLanguageDisplay();
+  $(window).on("load", function () {
+    updateLanguageDisplay();
   });
 });
-
 
 // typing animation
 
@@ -768,7 +828,7 @@ $(function () {
     if (exactLangMatch) return exactLangMatch[1];
     var subDirLangMatch = path.match(/^\/([a-z]{2})\//);
     if (subDirLangMatch) return subDirLangMatch[1];
-    return 'en'; 
+    return "en";
   }
 
   function createTypingEffect(selector, phrases) {
@@ -800,7 +860,7 @@ $(function () {
         "use less glue?",
         "glue with 100% repetition?",
         "glue 4 times faster?",
-      ]
+      ],
     },
     de: {
       phrases1: [
@@ -816,11 +876,11 @@ $(function () {
         "weniger Klebstoff verwenden?",
         "mit 100% Wiederholung kleben?",
         "4-mal schneller kleben?",
-      ]
+      ],
     },
   };
   var currentLang = getCurrentLanguage();
-  var currentPhrases = phrases[currentLang] || phrases['en'];
+  var currentPhrases = phrases[currentLang] || phrases["en"];
 
   createTypingEffect('[data-element="typing"]', currentPhrases.phrases1);
   createTypingEffect('[data-element="typing-2"]', currentPhrases.phrases2);

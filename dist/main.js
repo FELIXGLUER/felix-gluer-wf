@@ -472,123 +472,188 @@ $(document).ready(function () {
 // Anchor Menu
 
 $(document).ready(function () {
-  var t = $("[data-item='anchor-menu-wrapper']");
-  if (t.length) {
-    var s = function s() {
-      var i = function n() {
-          var r = e.first().offset().left,
-            i = t.offset().left;
-          return r >= i;
-        }(),
-        l = function n() {
-          var r = e.last().offset().left + e.last().outerWidth(!0),
-            i = t.offset().left + t.innerWidth();
-          return r <= i;
-        }(),
-        s = function n() {
-          var r = t.innerWidth(),
-            i = e.toArray().reduce(function (t, e) {
-              return t + $(e).outerWidth(!0);
-            }, 0);
-          return i > r;
-        }();
-      if (!s) {
-        t.css("justify-content", "center"), n.add(r).css({
+  var menuWrapper = $("[data-item='anchor-menu-wrapper']");
+  if (menuWrapper.length) {
+    var updateArrowVisibility = function updateArrowVisibility() {
+      var isAtStart = function checkStart() {
+        var firstItemLeft = menuItems.first().offset().left;
+        var wrapperLeft = menuWrapper.offset().left;
+        return firstItemLeft >= wrapperLeft;
+      }();
+      var isAtEnd = function checkEnd() {
+        var lastItemRight = menuItems.last().offset().left + menuItems.last().outerWidth(true);
+        var wrapperRight = menuWrapper.offset().left + menuWrapper.innerWidth();
+        return lastItemRight <= wrapperRight;
+      }();
+      var isOverflowing = function checkOverflow() {
+        var wrapperWidth = menuWrapper.innerWidth();
+        var totalItemsWidth = menuItems.toArray().reduce(function (total, item) {
+          return total + $(item).outerWidth(true);
+        }, 0);
+        return totalItemsWidth > wrapperWidth;
+      }();
+      if (!isOverflowing) {
+        menuWrapper.css("justify-content", "center");
+        leftArrow.add(rightArrow).css({
           opacity: "0",
           display: "none"
         });
         return;
       }
-      t.css("justify-content", "flex-start"), i ? n.css({
-        opacity: "0",
-        display: "none"
-      }) : n.css({
-        opacity: "1",
-        display: "flex"
-      }), l ? r.css({
-        opacity: "0",
-        display: "none"
-      }) : r.css({
-        opacity: "1",
-        display: "flex"
-      });
-    };
-    var o = function o() {
-      var n = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : !1;
-      var r = e.filter(".w--current");
-      r.length ? (t.removeClass("is-stack"), n || c(r)) : t.addClass("is-stack"), s();
-    };
-    var c = function c(e) {
-      var n = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : !1;
-      if (!e.length) return;
-      var r = e.offset().left,
-        i = e.outerWidth(!0),
-        o = t.offset().left,
-        c = t.innerWidth(),
-        a = t.scrollLeft(),
-        f = a;
-      if (r + i > o + c) f += r + i - (o + c);else {
-        if (!(r < o)) return;
-        f -= o - r;
+      menuWrapper.css("justify-content", "flex-start");
+      if (isAtStart) {
+        leftArrow.css({
+          opacity: "0",
+          display: "none"
+        });
+      } else {
+        leftArrow.css({
+          opacity: "1",
+          display: "flex"
+        });
       }
-      n ? (t.scrollLeft(f), s()) : (l = !0, t.stop().animate({
-        scrollLeft: f
-      }, 300, function () {
-        l = !1, s();
-      }));
+      if (isAtEnd) {
+        rightArrow.css({
+          opacity: "0",
+          display: "none"
+        });
+      } else {
+        rightArrow.css({
+          opacity: "1",
+          display: "flex"
+        });
+      }
     };
-    var a = function a(t) {
-      var n = e.filter(".w--current"),
-        r;
-      r = 0 === n.length ? "right" === t ? e.first() : e.last() : "right" === t ? n.next("a").length ? n.next("a") : e.first() : n.prev("a").length ? n.prev("a") : e.last(), n.length && n.removeClass("w--current"), r.addClass("w--current");
-      var i = n.attr("href"),
-        l = r.attr("href");
-      console.log("Current section: ".concat(i || "none", ", Going to ").concat("right" === t ? "next" : "previous", " section: ").concat(l)), r.trigger("click"), c(r, !1), o();
+    var updateMenuState = function updateMenuState() {
+      var isInitialLoad = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      var currentItem = menuItems.filter(".w--current");
+      if (currentItem.length) {
+        menuWrapper.removeClass("is-stack");
+        if (!isInitialLoad) {
+          scrollToCenter(currentItem);
+        }
+      } else {
+        menuWrapper.addClass("is-stack");
+      }
+      updateArrowVisibility();
     };
-    var f = function f(e) {
-      if (l) return;
-      l = !0;
-      var n = t.innerWidth(),
-        r = t[0].scrollWidth;
-      i.attr("data-scrolling", "true"), t.stop().animate({
-        scrollLeft: "right" === e ? r - n : 0
+    var scrollToCenter = function scrollToCenter(element) {
+      var immediate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      if (!element.length) return;
+      var elementLeft = element.offset().left;
+      var elementWidth = element.outerWidth(true);
+      var wrapperLeft = menuWrapper.offset().left;
+      var wrapperWidth = menuWrapper.innerWidth();
+      var currentScroll = menuWrapper.scrollLeft();
+      var newScroll = currentScroll;
+      if (elementLeft + elementWidth > wrapperLeft + wrapperWidth) {
+        newScroll += elementLeft + elementWidth - (wrapperLeft + wrapperWidth);
+      } else if (elementLeft < wrapperLeft) {
+        newScroll -= wrapperLeft - elementLeft;
+      } else {
+        return;
+      }
+      if (immediate) {
+        menuWrapper.scrollLeft(newScroll);
+        updateArrowVisibility();
+      } else {
+        isAnimating = true;
+        menuWrapper.stop().animate({
+          scrollLeft: newScroll
+        }, 300, function () {
+          isAnimating = false;
+          updateArrowVisibility();
+        });
+      }
+    };
+    var navigateMenu = function navigateMenu(direction) {
+      var currentItem = menuItems.filter(".w--current");
+      var nextItem;
+      if (currentItem.length === 0) {
+        nextItem = direction === "right" ? menuItems.first() : menuItems.last();
+      } else {
+        nextItem = direction === "right" ? currentItem.next("a").length ? currentItem.next("a") : menuItems.first() : currentItem.prev("a").length ? currentItem.prev("a") : menuItems.last();
+      }
+      if (currentItem.length) {
+        currentItem.removeClass("w--current");
+      }
+      nextItem.addClass("w--current");
+
+      // let currentSection = currentItem.attr("href");
+      // let nextSection = nextItem.attr("href");
+      // console.log(`Current section: ${currentSection || "none"}, Going to ${direction === "right" ? "next" : "previous"} section: ${nextSection}`);
+
+      nextItem.trigger("click");
+      scrollToCenter(nextItem, false);
+      updateMenuState();
+    };
+    var scrollFull = function scrollFull(direction) {
+      if (isAnimating) return;
+      isAnimating = true;
+      var wrapperWidth = menuWrapper.innerWidth();
+      var fullWidth = menuWrapper[0].scrollWidth;
+      arrowWrapper.attr("data-scrolling", "true");
+      menuWrapper.stop().animate({
+        scrollLeft: direction === "right" ? fullWidth - wrapperWidth : 0
       }, 300, function () {
-        i.attr("data-scrolling", "false"), l = !1, s();
+        arrowWrapper.attr("data-scrolling", "false");
+        isAnimating = false;
+        updateArrowVisibility();
       });
     };
-    var e = t.children("a"),
-      n = $("#anchor-left"),
-      r = $("#anchor-right"),
-      i = $("[data-item='anchor-menu-arrows']"),
-      l = !1;
-    r.on("click", function () {
-      l || "0" === r.css("opacity") || (console.log("Right arrow clicked"), a("right"));
-    }), n.on("click", function () {
-      l || "0" === n.css("opacity") || (console.log("Left arrow clicked"), a("left"));
-    }), t.on("scroll", function () {
-      l || function t() {
-        if (l) return;
-        var n = e.filter(".w--current");
-        c(n, !1), o(), s();
-      }();
-    }), $(window).on("resize", function () {
-      s();
-    }), $(window).on("load", function () {
-      s(), o(!0);
-      var t = e.filter(".w--current");
-      t.length && c(t, !0);
-    }), e.on("classChange", function () {
-      o();
+    var menuItems = menuWrapper.children("a");
+    var leftArrow = $("#anchor-left");
+    var rightArrow = $("#anchor-right");
+    var arrowWrapper = $("[data-item='anchor-menu-arrows']");
+    var isAnimating = false;
+    rightArrow.on("click", function () {
+      if (!isAnimating && rightArrow.css("opacity") !== "0") {
+        navigateMenu("right");
+      }
     });
-    var u = $.fn.addClass,
-      h = $.fn.removeClass;
+    leftArrow.on("click", function () {
+      if (!isAnimating && leftArrow.css("opacity") !== "0") {
+        navigateMenu("left");
+      }
+    });
+    menuWrapper.on("scroll", function () {
+      if (!isAnimating) {
+        (function handleScroll() {
+          if (isAnimating) return;
+          var currentItem = menuItems.filter(".w--current");
+          scrollToCenter(currentItem, false);
+          updateMenuState();
+          updateArrowVisibility();
+        })();
+      }
+    });
+    $(window).on("resize", function () {
+      updateArrowVisibility();
+    });
+    $(window).on("load", function () {
+      updateArrowVisibility();
+      updateMenuState(true);
+      var currentItem = menuItems.filter(".w--current");
+      if (currentItem.length) {
+        scrollToCenter(currentItem, true);
+      }
+    });
+    menuItems.on("classChange", function () {
+      updateMenuState();
+    });
+    var originalAddClass = $.fn.addClass;
+    var originalRemoveClass = $.fn.removeClass;
     $.fn.addClass = function () {
-      var t = u.apply(this, arguments);
-      return $(this).trigger("classChange"), t;
-    }, $.fn.removeClass = function () {
-      var t = h.apply(this, arguments);
-      return $(this).trigger("classChange"), t;
-    }, s();
+      var result = originalAddClass.apply(this, arguments);
+      $(this).trigger("classChange");
+      return result;
+    };
+    $.fn.removeClass = function () {
+      var result = originalRemoveClass.apply(this, arguments);
+      $(this).trigger("classChange");
+      return result;
+    };
+    updateArrowVisibility();
   }
 });
 
@@ -605,34 +670,34 @@ $(document).ready(function () {
     if (subDirLangMatch) {
       return subDirLangMatch[1];
     }
-    return 'en';
+    return "en";
   }
   function updateLanguageDisplay() {
     var currentLang = getCurrentLanguage();
     var $trigger = $('[data-lang="trigger"]');
     $trigger.text(currentLang.toUpperCase());
-    $('[data-lang]').each(function () {
-      var lang = $(this).attr('data-lang');
-      if (lang === 'es') {
-        $(this).addClass('hide');
+    $("[data-lang]").each(function () {
+      var lang = $(this).attr("data-lang");
+      if (lang === "es") {
+        $(this).addClass("hide");
       } else if (lang === currentLang) {
-        $(this).addClass('hide');
+        $(this).addClass("hide");
       } else {
-        $(this).removeClass('hide');
+        $(this).removeClass("hide");
       }
     });
   }
   function switchLanguage(lang) {
-    var newPath = lang === 'en' ? '/' : '/' + lang + '/';
+    var newPath = lang === "en" ? "/" : "/" + lang + "/";
     window.location.href = newPath;
   }
-  $('[data-lang]').not('[data-lang="trigger"]').on('click', function (e) {
+  $("[data-lang]").not('[data-lang="trigger"]').on("click", function (e) {
     e.preventDefault();
-    var lang = $(this).attr('data-lang');
+    var lang = $(this).attr("data-lang");
     switchLanguage(lang);
   });
   updateLanguageDisplay();
-  $(window).on('load', function () {
+  $(window).on("load", function () {
     updateLanguageDisplay();
   });
 });
@@ -646,7 +711,7 @@ $(function () {
     if (exactLangMatch) return exactLangMatch[1];
     var subDirLangMatch = path.match(/^\/([a-z]{2})\//);
     if (subDirLangMatch) return subDirLangMatch[1];
-    return 'en';
+    return "en";
   }
   function createTypingEffect(selector, phrases) {
     var element = document.querySelector(selector);
@@ -673,7 +738,7 @@ $(function () {
     }
   };
   var currentLang = getCurrentLanguage();
-  var currentPhrases = phrases[currentLang] || phrases['en'];
+  var currentPhrases = phrases[currentLang] || phrases["en"];
   createTypingEffect('[data-element="typing"]', currentPhrases.phrases1);
   createTypingEffect('[data-element="typing-2"]', currentPhrases.phrases2);
 });
