@@ -821,28 +821,20 @@ $(document).ready(function () {
 
 
 // typing animation
+
 $(function () {
   function getCurrentLanguage() {
     var path = window.location.pathname;
-    var exactLangMatch = path.match(/^\/([a-z]{2})$/);
+    var exactLangMatch = path.match(/^\\/([a-z]{2})$/);
     if (exactLangMatch) return exactLangMatch[1];
-    var subDirLangMatch = path.match(/^\/([a-z]{2})\//);
+    var subDirLangMatch = path.match(/^\\/([a-z]{2})\\//)
     if (subDirLangMatch) return subDirLangMatch[1];
     return "en";
   }
 
   function createTypingEffect(selector, phrases) {
     var element = document.querySelector(selector);
-    if (element) {
-      // Clear existing content
-      element.innerHTML = '';
-      
-      // Destroy existing instance if any
-      if (element.typed) {
-        element.typed.destroy();
-      }
-      
-      // Create new instance
+    if (element && !element.typed) {
       element.typed = new Typed(element, {
         strings: phrases,
         typeSpeed: 30,
@@ -895,5 +887,6 @@ $(function () {
   createTypingEffect('[data-element="typing"]', currentPhrases.phrases1);
   createTypingEffect('[data-element="typing-2"]', currentPhrases.phrases2);
 });
+
 
 // dist
