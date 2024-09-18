@@ -896,4 +896,4 @@ $(function () {
   createTypingEffect('[data-element="typing-2"]', currentPhrases.phrases2);
 });
 
-// 
+// dist
