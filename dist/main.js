@@ -750,3 +750,5 @@ $(function () {
   createTypingEffect('[data-element="typing"]', currentPhrases.phrases1);
   createTypingEffect('[data-element="typing-2"]', currentPhrases.phrases2);
 });
+
+//
