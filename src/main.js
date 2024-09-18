@@ -1,3 +1,5 @@
+$(document).ready(function() {
+
 // Language modal
 $(".navbar_lang_trigger").on("click", function () {
   $(".navbar_lang_modal").addClass("show-lang-modal");
@@ -891,5 +893,5 @@ $(function () {
   createTypingEffect('[data-element="typing-2"]', currentPhrases.phrases2);
 });
 
-
+});
 // dist
