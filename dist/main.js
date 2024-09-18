@@ -703,7 +703,6 @@ $(document).ready(function () {
 });
 
 // typing animation
-
 $(function () {
   function getCurrentLanguage() {
     var path = window.location.pathname;
@@ -716,7 +715,16 @@ $(function () {
   function createTypingEffect(selector, phrases) {
     var element = document.querySelector(selector);
     if (element) {
-      new Typed(selector, {
+      // Clear existing content
+      element.innerHTML = '';
+
+      // Destroy existing instance if any
+      if (element.typed) {
+        element.typed.destroy();
+      }
+
+      // Create new instance
+      element.typed = new Typed(element, {
         strings: phrases,
         typeSpeed: 30,
         backSpeed: 20,
