@@ -824,13 +824,16 @@ $(document).ready(function () {
 
 $(function () {
   function getCurrentLanguage() {
-    var path = window.location.pathname;
-    var exactLangMatch = path.match(/^\\/([a-z]{2})$/);
+    const path = window.location.pathname;
+    const exactLangMatch = path.match(/^\/([a-z]{2})$/);
     if (exactLangMatch) return exactLangMatch[1];
-    var subDirLangMatch = path.match(/^\\/([a-z]{2})\\//)
+    
+    const subDirLangMatch = path.match(/^\/([a-z]{2})\//);
     if (subDirLangMatch) return subDirLangMatch[1];
+    
     return "en";
-  }
+}
+
 
   function createTypingEffect(selector, phrases) {
     var element = document.querySelector(selector);
