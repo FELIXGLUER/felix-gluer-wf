@@ -787,21 +787,21 @@ $(document).ready(function () {
     var $trigger = $('[data-lang="trigger"]');
     $trigger.text(currentLang.toUpperCase());
 
-    $("[data-lang]").each(function () {
-      var lang = $(this).attr("data-lang");
-      if (lang === "es") {
-        $(this).addClass("hide");
-      } else if (lang === currentLang) {
-        $(this).addClass("hide");
-      } else {
-        $(this).removeClass("hide");
-      }
-    });
+    // Remove the hiding of languages
+    $("[data-lang]").removeClass("hide");
   }
 
   function switchLanguage(lang) {
-    var newPath = lang === "en" ? "/" : "/" + lang + "/";
-    window.location.href = newPath;
+    var currentLang = getCurrentLanguage();
+    
+    if (lang === currentLang) {
+      // If clicked language is the same as current, remove the modal
+      $(".navbar_lang_modal").removeClass("show-lang-modal");
+    } else {
+      // Otherwise, proceed with language switch
+      var newPath = lang === "en" ? "/" : "/" + lang + "/";
+      window.location.href = newPath;
+    }
   }
 
   $("[data-lang]")
@@ -818,6 +818,7 @@ $(document).ready(function () {
     updateLanguageDisplay();
   });
 });
+
 
 // typing animation
 $(function () {
