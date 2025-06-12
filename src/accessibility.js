@@ -1,3 +1,5 @@
+console.log("accessibility.js loaded");
+
 $(document).ready(function () {
 	function updateTabIndex() {
 		$('[aria-expanded]').each(function () {
