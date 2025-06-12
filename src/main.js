@@ -1,3 +1,4 @@
+//=require accessibility.js
 //=require language-modal.js
 //=require scroll-functions.js
 //=require dropdown-handlers.js
