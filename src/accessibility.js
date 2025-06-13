@@ -90,6 +90,73 @@ $(document).ready(function () {
 	});
 
 	updateTabIndex();
+
+	// Modal focus management for form__modal
+	var lastFocusedElement = null;
+	var $formModal = $('.form__modal');
+
+	function isModalVisible($modal) {
+		return $modal.css('display') === 'flex';
+	}
+
+	function moveToModal() {
+		if ($formModal.length && isModalVisible($formModal)) {
+			lastFocusedElement = document.activeElement;
+			
+			// Find first focusable element in the modal
+			var $focusableElements = $formModal.find('input, button, select, textarea, a[href], [tabindex]:not([tabindex="-1"])').filter(':visible');
+			
+			if ($focusableElements.length > 0) {
+				$focusableElements.first().focus();
+			} else {
+				// If no focusable elements, focus the modal itself
+				$formModal.attr('tabindex', '-1').focus();
+			}
+		}
+	}
+
+	function returnFocus() {
+		if (lastFocusedElement) {
+			setTimeout(function() {
+				$(lastFocusedElement).focus();
+				lastFocusedElement = null;
+			}, 10);
+		}
+	}
+
+	function closeModal() {
+		if ($formModal.length) {
+			$formModal.css('display', 'none');
+			returnFocus();
+		}
+	}
+
+	// ESC key handler for modal
+	$(document).on('keydown', function(e) {
+		if (e.which === 27 && $formModal.length && isModalVisible($formModal)) { // ESC key
+			e.preventDefault();
+			closeModal();
+		}
+	});
+
+	// Observer to watch for display changes
+	if ($formModal.length) {
+		var observer = new MutationObserver(function(mutations) {
+			mutations.forEach(function(mutation) {
+				if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+					var $target = $(mutation.target);
+					if (isModalVisible($target)) {
+						moveToModal();
+					}
+				}
+			});
+		});
+		
+		observer.observe($formModal[0], { 
+			attributes: true, 
+			attributeFilter: ['style'] 
+		});
+	}
 });
 
 $(document).on('focusin', function() { console.log(document.activeElement); });
