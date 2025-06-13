@@ -172,3 +172,38 @@ $(document).on('blur', '.skip_to_main_content', function() {
 document.querySelectorAll('input[tabindex="-1"]').forEach(input => {
     input.removeAttribute('tabindex');
 });
+
+// Handle .w-condition-invisible elements
+function updateConditionallyInvisibleElements() {
+	$('.w-condition-invisible').attr('tabindex', '-1');
+}
+
+// Initial setup
+updateConditionallyInvisibleElements();
+
+// Watch for class changes on elements that might get .w-condition-invisible added/removed
+$(document).ready(function() {
+	var observer = new MutationObserver(function(mutations) {
+		mutations.forEach(function(mutation) {
+			if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+				var $target = $(mutation.target);
+				if ($target.hasClass('w-condition-invisible')) {
+					$target.attr('tabindex', '-1');
+				} else if (mutation.oldValue && mutation.oldValue.includes('w-condition-invisible')) {
+					// Element no longer has w-condition-invisible, remove tabindex if it was -1
+					if ($target.attr('tabindex') === '-1') {
+						$target.removeAttr('tabindex');
+					}
+				}
+			}
+		});
+	});
+	
+	// Observe all elements for class changes
+	observer.observe(document.body, {
+		attributes: true,
+		attributeFilter: ['class'],
+		subtree: true,
+		attributeOldValue: true
+	});
+});
